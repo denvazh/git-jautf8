@@ -1,10 +1,20 @@
+# This script is intented to be used with git and bash.
+
 0) Create a generic directory to store git-related scripts below the user home directory
 $: mkdir -p $HOME/.git-custom
 
 1) Clone the project code below the directory with git-related scripts
-$: git clone https://github.com/denvazh/git-jautf8.git $HOME/.git-custom/git-jautf8.git
+$: git clone https://github.com/denvazh/git-jautf8.git $HOME/.git-custom/git-jautf8
 
 2) Add lines below to either .bashrc or .bash_profile 
  if [ -f $HOME/.git-custom/git-jautf8/init.sh ]; then
          . $HOME/.git-custom/git-jautf8/init.sh
  fi
+
+3) Re-open terminal or just load again either .bashrc or .bash_profile:
+$: source .bashrc
+ or
+$: source .bash_profile
+
+For more details, please refer to the manual
+$: man git-jautf8

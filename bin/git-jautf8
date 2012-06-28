@@ -129,7 +129,7 @@ if [ ! -z $1 ]; then
 	fi
 fi
 
-# Using pipe object, because pipeping to while loop descends into sub-shell
+# Using pipe object, because pipeing to while loop in bash descends into sub-shell
 listpipe="/tmp/$$$(basename $0)"
 mkfifo -m 700 $listpipe
 git ls-files 2>/dev/null 1> $listpipe &
