@@ -4,7 +4,7 @@
 $: mkdir -p $HOME/.git-custom
 
 1) Clone the project code below the directory with git-related scripts
-$: git clone https://github.com/denvazh/git-jautf8.git $HOME/.git-custom/git-jautf8
+$: git clone git://github.com/denvazh/git-jautf8.git $HOME/.git-custom/git-jautf8
 
 2) Add lines below to either .bashrc or .bash_profile 
  if [ -f $HOME/.git-custom/git-jautf8/init.sh ]; then
