@@ -1,0 +1,123 @@
+'\" t
+.\"     Title: git-jautf8
+.\"    Author: [Denis Vazhenin]
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: 28/06/2012
+.\"    Manual: Git Custom script
+.\"    Source: Based on manpages provided with Git 1.7.11.1
+.\"  Language: English
+.\"
+.TH "GIT\-JAUTF8" "1" "28/06/2012" "Git 1\&.7\&.11\&.1" "Git Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+git-jautf8 \- display/convert charset to ja_JP.UTF-8 for all files relative to current working directory
+.SH "SYNOPSIS"
+.sp
+.nf
+\fIgit jautf8\fR
+\fIgit jautf8 convert\fR
+.fi
+.sp
+.SH "DESCRIPTION"
+.sp
+Displays and converts any japanese-based EUC-JP, ISO-2022-JP, Shift_JIS charsets to UTF-8\&.
+All other files with non-japanese charsets or non plain text mime type are ignored\&.
+.SH "COMMANDS"
+.sp
+With no arguments, displays charset for each file in the current directory and in relative to it sub-directories\&.
+.PP
+\fIconvert\fR
+.RS 4
+Converts charset for each file in the current directory and in relative to it sub-directories to ja_JP.UTF-8.
+.SH "EXAMPLES"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Displays file charset for each file in the current directory
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ git jautf8
+#
+#	Listing files relative to 'foo/bar/'
+#
+#	ASCII		\{.\}htaccess
+#	Shift_JIS		foo_bar.rb
+#	ASCII		example_org.rb
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+Converting file charsets in the current folder to UTF-8
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ git jautf8 convert
+#
+#	Converted files relative to 'foo/bar/'
+#
+#	Shift_JIS -> UTF-8 	foo_bar.rb
+#	Shift_JIS -> UTF-8 	example_org.rb
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RE
+.sp
+.SH "SEE ALSO"
+.sp
+\fBnkf\fR(1)\{,\}\fBgit\fR(1)
+.SH "GIT"
+.sp
+While its not part of \fBgit\fR(1) suite it is heavily relyes on and intented to be used with it.
+.sp
+.SH BUGS
+No known bugs.
+.sp
+.SH DEPENDENCIES
+.sp
+\fBnkf\fR(1)\{,\}\fBawk\fR(1)\{,\}\fBmkfifo\fR(1)
+.sp
+.SH AUTHOR
+Denis Vazhenin (denis@nowhere.co.jp)
+.sp

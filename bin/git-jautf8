@@ -1,0 +1,194 @@
+#!/usr/bin/env bash
+
+#############################################################
+# Author:       Denis Vazhenin
+# Purpose:      wraps nkf and allows to convert files in
+# 		Shift_JIS, EUC-JP, ISO-2022-JP encodings
+#		to UTF-8
+# Note:		only one way conversion is supported
+#############################################################
+
+# Commands used heavily
+NKF_CMD='nkf'
+FILE_CMD='file'
+
+ifgit() {
+	git rev-parse --git-dir >/dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		echo "fatal: Not a git repository (or any of the parent directories): .git"
+		exit 128
+	fi
+}
+
+getOS() {
+	osname=$(uname -s)
+	OSTYPE=Unknown
+	case $osname in
+		"FreeBSD") OSTYPE="FREEBSD" ;;
+		"Linux") OSTYPE="LINUX" ;;
+		"Darwin") OSTYPE="OSX" ;;
+	esac
+
+	echo $OSTYPE
+	return 0
+}
+
+howto() {
+	# Processing input arguments
+	CMD=$1
+	OS=$2
+
+	INST_CMD="none"
+
+	case $CMD in
+	"nkf")
+		case $OS in
+		"FREEBSD") read -r -d '' INST_CMD<<'EOT'
+Please install nkf from ports: "cd /usr/ports/japanese/nkf && make install clean"
+EOT
+		;;
+		"LINUX") read -r -d '' INST_CMD<<'EOT'
+Unable to find nkf. There are number of options for installing nkf:
+1) Using repositories provided with the system
+Debian-based system:\t apt-get install nkf
+Red-hat based:\t\t yum install nkf
+
+2) Build from sources and install
+Source:\t\thttp://sourceforge.jp/projects/nkf
+Install:\tmake && make install
+EOT
+		;;
+		"OSX") read -r -d '' INST_CMD<<'EOT'
+Please install nkf with: brew install nkf
+EOT
+		;;
+		*) read -r -d '' INST_CMD<<'EOT'
+Unable to detect the system. You can try installing nkf from sources.
+1) Download the project files from "http://sourceforge.jp/projects/nkf"
+2) Build and install it with: "make && make install"
+EOT
+		;;
+		esac
+	;; # case->nkf
+	"file")
+		case $OS in
+		"FREEBSD") read -r -d '' INST_CMD<<'EOT'
+"cd /usr/ports/sysutils/file && make install clean"
+EOT
+		;;
+		"LINUX") read -r -d '' INST_CMD<<'EOT'
+EOT
+		;;
+		"OSX") INST_CMD=<<EOT
+Default path for file should be '/usr/bin/file'.
+Please check your paths settings.
+EOT
+		;;
+		*) read -r -d '' INST_CMD<<'EOT'
+Unable to detect the system. You can try installing file from sources.
+1) Download necessary package from "ftp://ftp.astron.com/pub/file"
+2) Build and install it with: "make && make install"
+EOT
+		;;
+		esac
+	;; # case ->file
+	esac
+
+	echo -e "${INST_CMD}"
+}
+
+check_cmd() {
+	CMD=$1
+	OS=$2
+	command -v "${CMD}" >/dev/null 2>&1 || { echo >&2 "fatal: Unable to find ${CMD}. Aborting."; howto ${CMD} ${OS}; exit 1; }
+}
+
+# Reading in OS type
+OSTYPE=$(getOS)
+
+# Sanity check
+ifgit
+
+# Check if necessary commands are installed, and set paths accordingly
+check_cmd $NKF_CMD $OSTYPE
+NKF_CMD_BIN="$(command -v "${NKF_CMD}")"
+check_cmd $FILE_CMD $OSTYPE
+FILE_CMD_BIN="$(command -v "${FILE_CMD}")"
+
+# Check user input (fast and ugly)
+# Default: without parameters show charset of files in folder
+CONVERT=false
+
+# Script expects only the first parameter
+if [ ! -z $1 ]; then
+	if [[ $1 == '--convert' || $1 == 'convert' ]]; then
+		CONVERT=true	
+	else
+		echo "fatal: do not know what to do with $1"
+		exit 1
+	fi
+fi
+
+# Using pipe object, because pipeping to while loop descends into sub-shell
+listpipe="/tmp/$$$(basename $0)"
+mkfifo -m 700 $listpipe
+git ls-files 2>/dev/null 1> $listpipe &
+
+ACTION=
+if [ $CONVERT == true ]; then
+	ACTION="Converted"
+else
+	ACTION="Listing"
+fi
+
+if [ -z $(git rev-parse --show-prefix) ]; then
+	echo -e "#\n#\t$ACTION files in and below the working directory root\n#"
+else
+	echo -e "#\n#\t$ACTION files relative to '$(git rev-parse --show-prefix)'\n#"
+fi
+
+while read file; do
+        if [ "$(${FILE_CMD_BIN} --mime -b $file | awk -F"/" '{print $1}')" != 'text' ]; then
+                continue
+        fi
+
+	# Color output for charset types: blue UTF-8, red other non-UTF-8, ascii and binary is white
+	CODE=$(${NKF_CMD_BIN} -g $file)
+
+	TABS=
+	if [ ${#CODE} -lt 7 ]; then
+		TABS="\t\t"
+	else
+		TABS="\t"
+	fi
+
+	FMT=
+	case $CODE in
+		"UTF-8") FMT="#\e[1;34m\t%-6s:$TABS%-6s\e[m";;
+		"Shift_JIS") FMT="#\e[1;31m\t%-6s:$TABS%-6s\e[m";;
+		"ISO-2022-JP") FMT="#\e[1;31m\t%-6s:$TABS%-6s\e[m";;
+		"EUC-JP") FMT="#\e[1;34m\t%-6s:$TABS%-6s\e[m";;
+		*) FMT="#\e[1m\t%-6s:$TABS%-6s\e[m";;
+	esac
+
+	# If converting
+	if [ $CONVERT == true ]; then
+		# Behave accordingly
+		case $CODE in
+			"Shift_JIS") ${NKF_CMD_BIN} -Sw --overwrite $file;;
+			"ISO-2022-JP") ${NKF_CMD_BIN} -Jw --overwrite $file;;
+			"EUC-JP") ${NKF_CMD_BIN} -Ew --overwrite $file;;
+		esac
+
+		NEW_CODE=$(${NKF_CMD_BIN} -g $file)
+
+		if [ "${CODE}" != "${NEW_CODE}" ]; then
+			printf "#\e[1;31m\t%-6s\e[m\e[1m -> \e[m\e[1;34m%-6s\e[m\t\e[1m%-6s\e[m\n" "$CODE" "$NEW_CODE" "$file"
+		fi
+	else
+		# Just showing current charset of files
+		printf "$FMT\n" "$CODE" "$file"
+	fi
+done < $listpipe
+rm $listpipe
+
