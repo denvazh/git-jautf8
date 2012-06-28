@@ -164,11 +164,11 @@ while read file; do
 
 	FMT=
 	case $CODE in
-		"UTF-8") FMT="#\e[1;34m\t%-6s:$TABS%-6s\e[m";;
-		"Shift_JIS") FMT="#\e[1;31m\t%-6s:$TABS%-6s\e[m";;
-		"ISO-2022-JP") FMT="#\e[1;31m\t%-6s:$TABS%-6s\e[m";;
-		"EUC-JP") FMT="#\e[1;34m\t%-6s:$TABS%-6s\e[m";;
-		*) FMT="#\e[1m\t%-6s:$TABS%-6s\e[m";;
+		"UTF-8") FMT="#\e[0;34m\t%-6s:$TABS%-6s\e[m";;
+		"Shift_JIS") FMT="#\e[0;31m\t%-6s:$TABS%-6s\e[m";;
+		"ISO-2022-JP") FMT="#\e[0;31m\t%-6s:$TABS%-6s\e[m";;
+		"EUC-JP") FMT="#\e[0;34m\t%-6s:$TABS%-6s\e[m";;
+		*) FMT="#\e[0m\t%-6s:$TABS%-6s\e[m";;
 	esac
 
 	# If converting
@@ -183,7 +183,7 @@ while read file; do
 		NEW_CODE=$(${NKF_CMD_BIN} -g $file)
 
 		if [ "${CODE}" != "${NEW_CODE}" ]; then
-			printf "#\e[1;31m\t%-6s\e[m\e[1m -> \e[m\e[1;34m%-6s\e[m\t\e[1m%-6s\e[m\n" "$CODE" "$NEW_CODE" "$file"
+			printf "#\e[0;31m\t%-6s\e[m\e[1m -> \e[m\e[1;34m%-6s\e[m\t\e[0m%-6s\e[m\n" "$CODE" "$NEW_CODE" "$file"
 		fi
 	else
 		# Just showing current charset of files
